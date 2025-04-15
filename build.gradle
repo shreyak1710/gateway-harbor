@@ -11,6 +11,15 @@ allprojects {
     }
 }
 
+// Disable bootJar for the root project since it doesn't have a main class
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
