@@ -1,0 +1,6 @@
+
+rootProject.name = 'gateway-harbor'
+
+include 'gateway-service'
+include 'customer-service'
+include 'authentication-service'
