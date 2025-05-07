@@ -64,18 +64,37 @@ gateway-service/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/
-│   │   │       └── aicustomer/
-│   │   │           └── gateway/
-│   │   │               ├── config/           # Configuration classes
-│   │   │               │   ├── SecurityConfig.java
-│   │   │               │   └── RateLimiterConfig.java
-│   │   │               ├── controller/       # Controller classes
-│   │   │               │   └── FallbackController.java
-│   │   │               └── GatewayServiceApplication.java
+│   │   │       └── zapcom/
+│   │   │           ├── configuration/        # Configuration classes
+│   │   │           │   ├── GatewayServiceConfiguration.java
+│   │   │           │   └── RateLimiterConfiguration.java
+│   │   │           ├── controller/           # Controller classes
+│   │   │           │   └── FallbackController.java
+│   │   │           ├── exception/            # Exception handling
+│   │   │           │   ├── GatewayServiceException.java
+│   │   │           │   └── GatewayServiceGlobalExceptionHandler.java
+│   │   │           ├── filter/               # Gateway filters
+│   │   │           │   ├── GatewayServiceRequestLoggingFilter.java
+│   │   │           │   ├── GatewayServiceResponseHeadersFilter.java
+│   │   │           │   └── JwtAuthenticationFilter.java
+│   │   │           ├── model/                # Data models
+│   │   │           │   ├── request/
+│   │   │           │   │   └── GatewayServiceRequest.java
+│   │   │           │   └── response/
+│   │   │           │       ├── GatewayServiceErrorResponse.java
+│   │   │           │       └── GatewayServiceResponse.java
+│   │   │           ├── utils/                # Utility classes
+│   │   │           │   ├── GatewayServiceJwtUtils.java
+│   │   │           │   ├── GatewayServicePathConstants.java
+│   │   │           │   ├── GatewayServiceRequestConstants.java
+│   │   │           │   └── GatewayServiceResponseConstants.java
+│   │   │           └── GatewayServiceApplication.java
 │   │   └── resources/
 │   │       └── application.yml               # Application configuration
 │   └── test/                                 # Test classes
-└── build.gradle                              # Gradle build file
+├── build.gradle                              # Gradle build file
+├── gradlew                                   # Gradle wrapper script
+└── README.md                                 # This file
 ```
 
 ## 6. API Documentation
