@@ -1,10 +1,10 @@
 
-# Gateway Service
+# Gateway Service - AI Customer Support Agents
 
 ## 1. Project Overview
 
-**Project Name:** Gateway Harbor - Gateway Service  
-**Description:** Spring Cloud Gateway service that routes and manages requests to microservices in the Gateway Harbor architecture. Provides rate limiting, circuit breaking, security, and fallback capabilities.
+**Project Name:** AI Customer Support Agents - Gateway Service  
+**Description:** Spring Cloud Gateway service that routes and manages requests to microservices in the AI Customer Support Agents architecture. Provides rate limiting, circuit breaking, security via API key authentication, and fallback capabilities.
 
 ## 2. Prerequisites
 
@@ -16,14 +16,14 @@
   - Spring Cloud Gateway
   - Spring Security
   - Resilience4j (Circuit Breaker)
-  - JWT Authentication
+  - API Key Authentication
 
 ## 3. Project Setup
 
 ### Clone the Repository:
 ```bash
 git clone <repository-url>
-cd gateway-harbor
+cd ai-customer-support
 ```
 
 ### Build the Project:
@@ -46,6 +46,7 @@ The application is configured via `application.yml` file. Key configurations inc
 - Route configurations for downstream services
 - Rate limiting settings
 - Circuit breaker configurations
+- API key validation settings
 
 ### Redis Connection Settings:
 ```yaml
@@ -63,7 +64,7 @@ gateway-service/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/
-│   │   │       └── gatewayharbor/
+│   │   │       └── aicustomer/
 │   │   │           └── gateway/
 │   │   │               ├── config/           # Configuration classes
 │   │   │               │   ├── SecurityConfig.java
@@ -86,15 +87,17 @@ Swagger documentation is not directly applicable to API Gateway services as they
 The Gateway Service routes to the following services:
 
 ### Authentication Service Routes
-- `POST /auth/api/auth/register` - Register new users
-- `POST /auth/api/auth/login` - Authenticate users
+- `POST /auth/api/auth/register` - Register new customer profiles
+- `POST /auth/api/auth/verify-email` - Verify email for API key generation
+- `GET /auth/api/auth/generate-api-key` - Generate API key after email verification
+- `POST /auth/api/auth/validate-api-key` - Validate API key
 
 ### Customer Service Routes
-- `GET /api/customers` - List all customers (Role: USER)
-- `GET /api/customers/{id}` - Get customer by ID (Role: ADMIN)
-- `POST /api/customers` - Create new customer (Role: ADMIN)
-- `PUT /api/customers/{id}` - Update customer (Role: ADMIN)
-- `DELETE /api/customers/{id}` - Delete customer (Role: ADMIN)
+- `GET /api/customers` - List all customers (Requires API key)
+- `GET /api/customers/{id}` - Get customer by ID (Requires API key)
+- `POST /api/customers` - Create new customer profile (Requires API key)
+- `PUT /api/customers/{id}` - Update customer profile (Requires API key)
+- `DELETE /api/customers/{id}` - Delete customer profile (Requires API key)
 
 ### Fallback Routes
 - `GET /fallback/auth` - Fallback for authentication service
@@ -106,13 +109,15 @@ The Gateway Service implements centralized error handling through:
 
 1. **Circuit Breakers**: When downstream services fail, the circuit breaker trips and redirects to fallback endpoints.
 2. **Fallback Controllers**: Provides meaningful error responses when services are unavailable.
+3. **API Key Validation**: Returns appropriate error messages for invalid or expired API keys.
 
 ### Common Error Responses:
 
 - **503 Service Unavailable**: When a service is down or not responding
 - **429 Too Many Requests**: When rate limits are exceeded
-- **401 Unauthorized**: When JWT authentication fails
-- **403 Forbidden**: When authorization fails (incorrect roles)
+- **401 Unauthorized**: When API key authentication fails
+- **403 Forbidden**: When permission is denied for the provided API key
+- **400 Bad Request**: When the request format is invalid
 
 ## 9. Testing
 
@@ -122,7 +127,7 @@ The Gateway Service implements centralized error handling through:
 ```
 
 ### Test Categories:
-- Unit Tests: Test individual components
+- Unit Tests: Test individual components, including API key validation
 - Integration Tests: Test routing and filter behavior
 
 ## 10. Deployment Instructions
@@ -169,15 +174,15 @@ The Gateway Service implements centralized error handling through:
 
 2. Build the Docker image:
    ```bash
-   docker build -t gateway-harbor/gateway-service .
+   docker build -t ai-customer-support/gateway-service .
    ```
 
 3. Run the container:
    ```bash
    docker run -d -p 8080:8080 --name gateway-service \
-     --network harbor-network \
+     --network ai-support-network \
      -e "SPRING_REDIS_HOST=redis" \
-     gateway-harbor/gateway-service
+     ai-customer-support/gateway-service
    ```
 
 4. Docker Compose (optional):
@@ -191,7 +196,7 @@ The Gateway Service implements centralized error handling through:
        ports:
          - "6379:6379"
        networks:
-         - harbor-network
+         - ai-support-network
        
      gateway-service:
        build: ./gateway-service
@@ -202,10 +207,10 @@ The Gateway Service implements centralized error handling through:
        environment:
          - SPRING_REDIS_HOST=redis
        networks:
-         - harbor-network
+         - ai-support-network
    
    networks:
-     harbor-network:
+     ai-support-network:
        driver: bridge
    ```
 
@@ -213,3 +218,35 @@ The Gateway Service implements centralized error handling through:
    ```bash
    docker-compose up -d
    ```
+
+## 11. API Key Authentication Flow
+
+The system uses API key-based authentication that follows this flow:
+
+1. Customer submits registration details via the Authentication Service
+2. System validates customer information and sends a verification email
+3. Customer verifies email through the verification link
+4. Upon successful verification, an API key is generated and stored in both Authentication and Customer Service databases
+5. All subsequent API requests must include this API key in the header
+6. Gateway Service validates the API key before routing requests to microservices
+
+### Customer Registration Request Format
+
+The registration endpoint accepts a comprehensive JSON payload containing:
+
+- Customer Profile (name, industry, business details)
+- Legal and Tax Compliance information
+- Banking Details
+- Administrative Contact Information
+- API Configuration preferences
+- Branding elements
+- Chatbot configuration
+- Terms agreement
+
+### API Key Header Format
+
+After obtaining an API key, all requests must include:
+
+```
+X-API-Key: {generated-api-key}
+```
