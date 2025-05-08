@@ -5,6 +5,7 @@ import com.zapcom.exception.GatewayServiceInvalidApiKeyException;
 import com.zapcom.exception.GatewayServiceMissingHeaderException;
 import com.zapcom.utils.GatewayServiceApiKeyValidator;
 import com.zapcom.utils.GatewayServicePathConstants;
+import com.zapcom.utils.GatewayServiceRequestConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -21,7 +22,6 @@ import java.util.List;
 @Component
 public class GatewayServiceApiKeyAuthenticationFilter implements GlobalFilter, Ordered {
     private static final Logger logger = LoggerFactory.getLogger(GatewayServiceApiKeyAuthenticationFilter.class);
-    private static final String API_KEY_HEADER = "X-API-Key";
     
     private final GatewayServiceApiKeyValidator apiKeyValidator;
     
@@ -41,7 +41,7 @@ public class GatewayServiceApiKeyAuthenticationFilter implements GlobalFilter, O
         }
         
         // Check for API key in header
-        List<String> apiKeys = request.getHeaders().get(API_KEY_HEADER);
+        List<String> apiKeys = request.getHeaders().get(GatewayServiceRequestConstants.API_KEY_HEADER);
         if (apiKeys == null || apiKeys.isEmpty()) {
             logger.error("Missing API key header for request to {}", path);
             return Mono.error(new GatewayServiceMissingHeaderException("API key header is required"));

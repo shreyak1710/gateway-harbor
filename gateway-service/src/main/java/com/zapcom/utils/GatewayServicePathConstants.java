@@ -10,10 +10,11 @@ public class GatewayServicePathConstants {
     
     // Paths that don't require API key authentication
     public static final String[] OPEN_API_ENDPOINTS = {
-            "/auth/api/auth/register",
-            "/auth/api/auth/verify-email",
+            "/auth/register",
+            "/auth/verify",
             "/auth/api/auth/login",
-            "/auth/api/auth/generate-api-key",
+            "/auth/getCustomer",
+            "/auth/get_api_key",
             "/fallback"
     };
     
