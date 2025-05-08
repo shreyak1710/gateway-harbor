@@ -1,4 +1,3 @@
-
 package com.gatewayharbor.auth.controller;
 
 import com.gatewayharbor.auth.model.User;
@@ -83,6 +82,40 @@ public class AuthController {
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "User registered successfully!");
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/generate-api-key")
+    public ResponseEntity<?> generateApiKey(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        
+        if (userOptional.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Error: User not found!");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        // Generate a random API key
+        String apiKey = UUID.randomUUID().toString();
+        User user = userOptional.get();
+        user.setApiKey(apiKey);
+        userRepository.save(user);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("apiKey", apiKey);
+        response.put("message", "API key generated successfully!");
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/validate-api-key")
+    public ResponseEntity<?> validateApiKey(@RequestBody Map<String, String> request) {
+        String apiKey = request.get("apiKey");
+        
+        boolean isValid = userRepository.findByApiKey(apiKey).isPresent();
+        
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("valid", isValid);
         return ResponseEntity.ok(response);
     }
 }

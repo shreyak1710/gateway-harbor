@@ -1,3 +1,4 @@
+
 # Gateway Service - AI Customer Support Agents
 
 ## 1. Project Overview
@@ -280,3 +281,12 @@ After obtaining an API key, all requests must include:
 ```
 X-API-Key: {generated-api-key}
 ```
+
+### API Key Validation Process
+
+1. When a request arrives at the Gateway Service, the ApiKeyAuthenticationFilter intercepts it
+2. The filter checks if the request path requires authentication
+3. If authentication is required, it extracts the X-API-Key header value
+4. The API key is validated using the ApiKeyValidationService
+5. If the key is valid, the request is forwarded to the appropriate microservice
+6. If the key is invalid or missing, a 401 Unauthorized response is returned

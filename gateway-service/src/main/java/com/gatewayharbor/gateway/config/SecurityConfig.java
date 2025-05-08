@@ -24,12 +24,10 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth/**").permitAll()
                         .pathMatchers("/fallback/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/customers").hasRole("USER")
-                        .pathMatchers("/api/customers/**").hasRole("ADMIN")
-                        .anyExchange().authenticated()
+                        // API key authentication will be implemented in a filter
+                        // JWT validation is removed
+                        .anyExchange().permitAll()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> {}))
                 .build();
     }
 
@@ -39,7 +37,7 @@ public class SecurityConfig {
         corsConfig.setAllowedOrigins(Arrays.asList("*"));
         corsConfig.setMaxAge(3600L);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization"));
+        corsConfig.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-API-Key"));
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);

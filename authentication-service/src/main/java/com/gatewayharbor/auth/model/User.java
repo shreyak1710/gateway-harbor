@@ -17,4 +17,5 @@ public class User {
     private String password;
     private String email;
     private Set<String> roles = new HashSet<>();
+    private String apiKey;
 }
