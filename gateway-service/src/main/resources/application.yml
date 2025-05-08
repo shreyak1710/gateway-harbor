@@ -11,6 +11,10 @@ spring:
   security:
     enabled: true
 
+services:
+  auth-service-url: http://localhost:8081
+  customer-service-url: http://localhost:8082
+
 resilience4j:
   circuitbreaker:
     configs:

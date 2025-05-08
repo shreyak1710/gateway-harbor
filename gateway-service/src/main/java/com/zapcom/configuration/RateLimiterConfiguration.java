@@ -1,6 +1,7 @@
 
 package com.zapcom.configuration;
 
+import com.zapcom.utils.GatewayServiceRequestConstants;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,7 @@ public class RateLimiterConfiguration {
     @Bean
     public KeyResolver userKeyResolver() {
         return exchange -> {
-            String apiKey = exchange.getRequest().getHeaders().getFirst("X-API-Key");
+            String apiKey = exchange.getRequest().getHeaders().getFirst(GatewayServiceRequestConstants.API_KEY_HEADER);
             if (apiKey != null) {
                 return Mono.just(apiKey);
             }

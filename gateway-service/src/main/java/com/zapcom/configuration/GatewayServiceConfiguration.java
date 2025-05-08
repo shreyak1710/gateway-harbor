@@ -1,6 +1,14 @@
 
 package com.zapcom.configuration;
 
+import com.zapcom.filter.GatewayServiceApiKeyAuthenticationFilter;
+import com.zapcom.filter.GatewayServiceRequestLoggingFilter;
+import com.zapcom.filter.GatewayServiceResponseHeadersFilter;
+import com.zapcom.utils.GatewayServicePathConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -9,35 +17,55 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class GatewayServiceConfiguration {
+	private static final Logger logger = LoggerFactory.getLogger(GatewayServiceConfiguration.class);
 
-    @Bean
-    public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
-    }
+	@Value("${services.customer-service-url}")
+	private String customerServiceUrl;
 
-    @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-        return builder.routes()
-                .route("auth-service", r -> r.path("/auth/**")
-                        .filters(f -> f
-                                .rewritePath("/auth/(?<segment>.*)", "/${segment}")
-                                .requestRateLimiter(c -> c
-                                        .setRateLimiter(redisRateLimiter())
-                                        .setKeyResolver(userKeyResolver()))
-                                .circuitBreaker(c -> c
-                                        .setName("authCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/auth")))
-                        .uri("http://localhost:8081"))
-                .route("customer-service", r -> r.path("/api/customers/**")
-                        .filters(f -> f
-                                .rewritePath("/api/customers/(?<segment>.*)", "/customers/${segment}")
-                                .requestRateLimiter(c -> c
-                                        .setRateLimiter(redisRateLimiter())
-                                        .setKeyResolver(userKeyResolver()))
-                                .circuitBreaker(c -> c
-                                        .setName("customerCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/customers")))
-                        .uri("http://localhost:8082"))
-                .build();
-    }
+	@Value("${services.auth-service-url}")
+	private String authServiceUrl;
+
+	@Autowired
+	private GatewayServiceApiKeyAuthenticationFilter gatewayServiceApiKeyAuthenticationFilter;
+
+	@Autowired
+	private GatewayServiceRequestLoggingFilter gatewayServiceRequestLoggingFilter;
+
+	@Autowired
+	private GatewayServiceResponseHeadersFilter gatewayServiceResponseHeadersFilter;
+
+	@Bean
+	public WebClient.Builder webClientBuilder() {
+		return WebClient.builder();
+	}
+
+	@Bean
+	public RouteLocator routeLocator(RouteLocatorBuilder builder) {
+		logger.info("Configuring API Gateway routes with static service discovery");
+
+		return builder.routes()
+				// Auth service route
+				.route("auth-service", r -> {
+					logger.info("Configuring auth-service route for path: {}", GatewayServicePathConstants.AUTH_PATH + "/**");
+					return r.path(GatewayServicePathConstants.AUTH_PATH + "/**")
+							.filters(f -> f
+									.rewritePath(GatewayServicePathConstants.AUTH_PATH + "/(?<segment>.*)", "/auth/${segment}")
+									.filter(gatewayServiceRequestLoggingFilter)
+									.filter(gatewayServiceResponseHeadersFilter))
+							.uri(authServiceUrl);
+				})
+
+				// Customer service route (protected with API Key)
+				.route("customer-service", r -> {
+					logger.info("Configuring customer-service route for path: {}", GatewayServicePathConstants.CUSTOMER_PATH + "/**");
+					return r.path(GatewayServicePathConstants.CUSTOMER_PATH + "/**")
+							.filters(f -> f
+									.rewritePath(GatewayServicePathConstants.CUSTOMER_PATH + "/(?<segment>.*)", "/customers/${segment}")
+									.filter(gatewayServiceApiKeyAuthenticationFilter)
+									.filter(gatewayServiceRequestLoggingFilter)
+									.filter(gatewayServiceResponseHeadersFilter))
+							.uri(customerServiceUrl);
+				})
+				.build();
+	}
 }
