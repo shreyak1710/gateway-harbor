@@ -1,0 +1,20 @@
+
+spring:
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+  security:
+    enabled: true
+
+logging:
+  level:
+    com.zapcom: INFO
+    org.springframework.cloud.gateway: INFO
+    
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 20
+        waitDurationInOpenState: 30s

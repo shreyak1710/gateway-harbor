@@ -1,0 +1,19 @@
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+  security:
+    enabled: true
+
+logging:
+  level:
+    com.zapcom: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        minimumNumberOfCalls: 3
+        waitDurationInOpenState: 2s
