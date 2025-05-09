@@ -22,10 +22,10 @@ public class ApiKeyValidationService {
         return webClient
                 .post()
                 .uri("/api/auth/validate-api-key")
-                .bodyValue(new ApiKeyRequest(apiKey))
+                .bodyValue(new java.util.HashMap<String, String>() {{ put("apiKey", apiKey); }})
                 .retrieve()
-                .bodyToMono(ApiKeyResponse.class)
-                .map(ApiKeyResponse::isValid)
+                .bodyToMono(java.util.Map.class)
+                .map(response -> (Boolean) response.get("valid"))
                 .onErrorReturn(false)
                 .doOnNext(valid -> {
                     if (valid) {
@@ -35,8 +35,4 @@ public class ApiKeyValidationService {
                     }
                 });
     }
-
-    // Simple request/response objects for the validation API
-    private record ApiKeyRequest(String apiKey) {}
-    private record ApiKeyResponse(boolean valid) {}
 }
