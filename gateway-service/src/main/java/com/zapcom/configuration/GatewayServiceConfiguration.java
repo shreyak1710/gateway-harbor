@@ -61,7 +61,7 @@ public class GatewayServiceConfiguration {
 					return r.path(GatewayServicePathConstants.CUSTOMER_PATH + "/**")
 							.filters(f -> f
 									.rewritePath(GatewayServicePathConstants.CUSTOMER_PATH + "/(?<segment>.*)", "/customers/${segment}")
-									.filter(gatewayServiceApiKeyAuthenticationFilter)
+									.filter(gatewayServiceApiKeyAuthenticationFilter.apply(new GatewayServiceApiKeyAuthenticationFilter.Config()))
 									.filter(gatewayServiceRequestLoggingFilter)
 									.filter(gatewayServiceResponseHeadersFilter))
 							.uri(customerServiceUrl);
