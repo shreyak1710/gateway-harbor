@@ -1,9 +1,16 @@
+
 package com.gatewayharbor.auth.controller;
 
 import com.gatewayharbor.auth.model.User;
 import com.gatewayharbor.auth.repository.UserRepository;
 import com.gatewayharbor.auth.security.JwtUtils;
 import com.gatewayharbor.auth.security.services.UserDetailsImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +25,7 @@ import java.util.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Authentication and API key management endpoints")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -32,6 +40,11 @@ public class AuthController {
     JwtUtils jwtUtils;
     
     @PostMapping("/login")
+    @Operation(summary = "Authenticate user", description = "Authenticates a user with username and password, returns JWT token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successful authentication"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content)
+    })
     public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.get("username"), loginRequest.get("password")));
@@ -55,6 +68,11 @@ public class AuthController {
     }
     
     @PostMapping("/register")
+    @Operation(summary = "Register new user", description = "Creates a new user account with basic USER role")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User registered successfully"),
+        @ApiResponse(responseCode = "400", description = "Username or email already in use")
+    })
     public ResponseEntity<?> registerUser(@RequestBody Map<String, String> signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.get("username"))) {
             Map<String, String> response = new HashMap<>();
@@ -86,6 +104,11 @@ public class AuthController {
     }
     
     @PostMapping("/generate-api-key")
+    @Operation(summary = "Generate API key", description = "Generates a new API key for the specified user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "API key generated successfully"),
+        @ApiResponse(responseCode = "400", description = "User not found")
+    })
     public ResponseEntity<?> generateApiKey(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -109,6 +132,10 @@ public class AuthController {
     }
     
     @PostMapping("/validate-api-key")
+    @Operation(summary = "Validate API key", description = "Checks if the provided API key is valid")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Returns validation result")
+    })
     public ResponseEntity<?> validateApiKey(@RequestBody Map<String, String> request) {
         String apiKey = request.get("apiKey");
         
